@@ -4,84 +4,65 @@ Execute approved work from OpenSpec.
 
 ## Source of Truth
 
-OpenSpec is the ONLY source of truth.
+OpenSpec is the ONLY source of truth. Orch routing decisions are operational only and MUST NOT create a second task lifecycle.
 
 ## MUST
 
 - Read the active/approved OpenSpec change and tasks before modifying code.
 - Execute only work that belongs to the approved OpenSpec scope.
-- MUST NOT invent additional unrelated tasks.
-- Prefer targeted repository context.
-- Use Repomix only when broader context is necessary.
-- Use LLMLingua only when remaining context exceeds the configured threshold.
-- Use RTK for supported shell, git, test, lint, and build output.
+- Derive bounded operational WorkUnits that reference their originating OpenSpec task.
+- Route each WorkUnit through the Orch agent registry before delegation.
+- Filter agents by required capabilities before selection.
+- Prefer an explicitly configured capable agent when present; otherwise use deterministic routing.
+- Use provider-neutral execution tiers: lightweight, default, strong.
+- Treat unsupported execution tiers as advisory and report the downgrade.
+- Start with targeted context and use the central Orch token policy for Repomix/LLMLingua escalation.
+- Parallelize only when dependencies, write scopes, global-change risk, and adapter capabilities all permit it. Unknown write scope means sequential.
+- Fail before delegation when no capable agent exists.
 - Update progress/state only through OpenSpec.
-- Track and report token-efficiency savings when available.
+- Record routing telemetry separately from OpenSpec task/change state.
+- Track and report token-efficiency savings when available; never fabricate values.
 
 ## Workflow
 
 1. Read the approved OpenSpec work.
-2. Identify the next incomplete task.
-3. Load only the context required for that task.
-4. Implement the task.
-5. Run relevant verification.
-6. Continue with approved tasks until complete or blocked.
-7. Record progress through OpenSpec.
-8. Present execution status and mandatory run summary.
+2. Identify the next incomplete OpenSpec task.
+3. Derive one or more bounded WorkUnits referencing that task.
+4. Allocate context through the Orch context policy.
+5. Route each WorkUnit through the detected agent registry.
+6. Analyze conservative parallelism; default to sequential when uncertain.
+7. Delegate/implement the work using the selected adapter and execution tier (or adapter default when the tier is advisory).
+8. Run relevant verification.
+9. Record completion/progress through OpenSpec only.
+10. Add routing/context/usage information to Orch operational run telemetry.
+11. Continue with approved tasks until complete or blocked.
+12. Present execution status and mandatory run summary.
 
 ## MUST STOP IF
 
 - OpenSpec scope is ambiguous.
 - Required work conflicts with the approved change.
+- No capable agent exists for required capabilities.
 - Verification indicates a serious unresolved failure.
-
-Report the blocker rather than inventing scope, but STILL output the mandatory run summary.
 
 ## Mandatory Orch Run Summary
 
-At the end of this workflow (even if blocked or failed), you MUST provide an Orch token-efficiency summary.
-
-The summary MUST distinguish:
-- tool available
-- tool used
-- tool skipped
-- tool unavailable
-- tool failed
-
-MUST NOT fabricate token values. If exact usage or savings are unavailable, print "not measured".
-
-Expected report structure:
+At completion (even if blocked/failed), distinguish tool available/used/skipped/unavailable/failed and report `not measured` for unavailable token values. Include routed WorkUnits with selected agent, requested/effective tier, context strategy, parallel/sequential decision, and reasons.
 
 🧠 ORCH TOKEN EFFICIENCY
 ────────────────────────────────
 Workflow: orch-execute
 
-RTK
-Status: <USED | SKIPPED | AVAILABLE | UNAVAILABLE | FAILED>
-Reason: <reason if skipped/failed/available>
-Saved: <measured tokens | not measured>
+RTK / Repomix / LLMLingua / usage provider
+Status: <actual status>
+Saved/usage: <measured value | not measured>
 
-Repomix
-Status: <USED | SKIPPED | AVAILABLE | UNAVAILABLE | FAILED>
-Reason: <reason if skipped/failed/available>
-Saved: <measured tokens | not measured>
-
-LLMLingua
-Status: <USED | SKIPPED | AVAILABLE | UNAVAILABLE | FAILED>
-Reason: <reason if skipped/failed/available>
-Saved: <measured tokens | not measured>
-
-ccusage
-Status: <AVAILABLE | UNAVAILABLE | FAILED>
-Tracking: session/day usage
-Per-workflow usage: not directly attributable
+Routing
+- <work unit>: <agent>, <tier>, <context>, <parallel|sequential>, <reason>
 
 Context
 Before: <tokens | not measured>
-After:  <tokens | not measured>
+After: <tokens | not measured>
 
-────────────────────────────────
-Run saved:     <tokens | 0 tokens | not fully measured>
+Run saved: <tokens | not fully measured>
 Project saved: <tokens | not measured>
-
-<🧠 Token efficiency was used | ℹ️ No token optimization was required for this run.>
