@@ -14,6 +14,7 @@ import { installRtk } from "../installers/rtk.js";
 import { installRepomix } from "../installers/repomix.js";
 import { installCcusage } from "../installers/ccusage.js";
 import { installLLMLingua } from "../installers/llmlingua.js";
+import { defaultOrganizationConfig, ensureDocsRoot } from "../organization/projectOrganization.js";
 
 export const defaultConfig = {
   version: 1,
@@ -28,7 +29,8 @@ export const defaultConfig = {
       minimumTargetTokens: 4000
     },
     tracking: { enabled: true }
-  }
+  },
+  organization: defaultOrganizationConfig
 };
 
 async function exists(p: string): Promise<boolean> {
@@ -50,7 +52,7 @@ export function mergeDefaults<T>(defaults: T, existing: unknown): T {
 }
 
 function agentInstructions(): string {
-  return `# Orch\n\nThis project uses Orch as an orchestration and token-efficiency layer around OpenSpec.\n\nOpenSpec is the ONLY source of truth for specifications, plans, tasks, changes, progress, and archives.\n\nUse the installed Orch workflows/skills when appropriate:\n\n- orch-explore\n- orch-plan\n- orch-execute\n- orch-archive\n\nOrch MUST NOT create competing persistent workflow state.\n\nUse token-efficiency tools only when beneficial. Do not claim a tool was used merely because it is installed, and do not fabricate token savings.\n`;
+  return `# Orch\n\nThis project uses Orch as an orchestration, token-efficiency, and project-organization layer around OpenSpec.\n\nOpenSpec is the ONLY source of truth for specifications, plans, tasks, changes, progress, and archives.\n\nDurable technical reference documentation MUST live under the configured docs root (default: docs/). Root entry-point documents such as README.md and AGENTS.md are allowed. Documentation MUST NOT duplicate OpenSpec plans, tasks, progress, or change state.\n\nWhen implementation changes documented architecture, APIs, database behavior, setup, deployment, or operations, the relevant docs SHOULD be updated in the same approved work.\n\nUse the installed Orch workflows/skills when appropriate:\n\n- orch-explore\n- orch-plan\n- orch-execute\n- orch-archive\n\nOrch MUST NOT create competing persistent workflow state.\n\nUse token-efficiency tools only when beneficial. Do not claim a tool was used merely because it is installed, and do not fabricate token savings.\n`;
 }
 
 async function confirm(message: string): Promise<boolean> {
@@ -121,6 +123,7 @@ export async function initCommand(cwd = process.cwd()) {
   await mkdir(orchDir, { recursive: true });
   const configPath = path.join(orchDir, "config.json");
   const configResult = await ensureConfig(configPath);
+  const docsRoot = configResult.invalid ? null : await ensureDocsRoot(cwd);
   const openspecProject = await exists(path.join(cwd, "openspec"));
   const openspecCli = await commandExists("openspec", ["--version"]);
   const agentFiles = await writeAgentFiles(cwd);
@@ -133,6 +136,7 @@ export async function initCommand(cwd = process.cwd()) {
   else if (configResult.updated) console.log(`✅ Orch config merged with missing defaults: ${configPath}`);
   else console.log(`ℹ️ Orch config already current: ${configPath}`);
 
+  if (docsRoot) console.log(`✅ Docs root ensured: ${path.relative(cwd, docsRoot) || "docs"}`);
   console.log(`${agentFiles.agentsCreated ? "✅" : "ℹ️"} AGENTS.md ${agentFiles.agentsCreated ? "created" : "preserved"}`);
   console.log(`${managedIcon(agentFiles.antiStatus)} Antigravity rule: ${agentFiles.antiStatus}`);
 
