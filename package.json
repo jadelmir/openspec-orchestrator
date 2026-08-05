@@ -6,11 +6,19 @@
   "bin": {
     "orch": "./dist/cli.js"
   },
+  "files": [
+    "dist/",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
   "scripts": {
     "build": "tsc && node scripts/copy-assets.js",
     "dev": "tsx src/cli.ts",
     "start": "node dist/cli.js",
-    "test": "node --import tsx --test"
+    "test": "node --import tsx --test",
+    "prepack": "npm run build && npm test",
+    "pack:check": "npm pack --dry-run"
   },
   "repository": {
     "type": "git",
@@ -20,6 +28,13 @@
   "bugs": {
     "url": "https://github.com/jadelmir/openspec-orchestrator/issues"
   },
+  "keywords": [
+    "openspec",
+    "orchestrator",
+    "ai-agents",
+    "token-efficiency",
+    "codex"
+  ],
   "dependencies": {
     "commander": "^12.1.0",
     "js-tiktoken": "^1.0.21"
