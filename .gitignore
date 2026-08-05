@@ -4,16 +4,13 @@ node_modules/
 # Build artifacts
 dist/
 
-# Local Orch runtime configuration & operational stats
-.orch/
+# Local runtime state & stats generated during execution
+.orch/run-state.json
+.orch/token-stats.json
 
-# Agent local files generated on init
-.agents/
-.codex/
-AGENTS.md
-
-# Scratch & temporary files
+# Scratch & temporary workspace files
 scratch/
+.scratch/
 *.log
 *.tmp
 repomix-output.xml

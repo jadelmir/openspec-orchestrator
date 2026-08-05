@@ -1,0 +1,77 @@
+---
+name: orch-plan
+description: Plan work through OpenSpec while applying Orch token-efficiency rules.
+---
+
+# Orch Plan
+
+Plan the requested change through OpenSpec.
+
+## Source of Truth
+
+OpenSpec is the ONLY source of truth.
+
+## MUST
+
+- MUST NOT create an Orch-specific competing plan.
+- MUST use OpenSpec for persistent planning.
+- Determine the minimum required context.
+- Prefer targeted reads.
+- Use Repomix only if broad context is required.
+- Use LLMLingua only if context remains large.
+- Use RTK for supported verbose terminal commands.
+- Report token savings when available.
+- DO NOT implement the planned work.
+
+## Workflow
+
+1. Read relevant OpenSpec state.
+2. Understand the requested change.
+3. Explore minimum necessary code context.
+4. Use the installed OpenSpec planning/proposal workflow.
+5. Ensure the resulting plan lives only in OpenSpec.
+6. Return a planning summary and mandatory Orch Run Summary.
+
+## Mandatory Orch Run Summary
+
+At workflow completion:
+MUST display actual Orch optimization state.
+
+MUST NOT assume a tool was used merely because it is installed.
+
+MUST NOT fabricate token savings. Use "not measured" when values cannot be measured.
+
+Desired final report format:
+
+🧠 ORCH TOKEN EFFICIENCY
+────────────────────────────────
+Workflow: orch-plan
+
+RTK
+Status: <USED | SKIPPED | AVAILABLE | UNAVAILABLE | FAILED>
+Reason: <reason if skipped/failed/available>
+Saved: <measured tokens | not measured>
+
+Repomix
+Status: <USED | SKIPPED | AVAILABLE | UNAVAILABLE | FAILED>
+Reason: <reason if skipped/failed/available>
+Saved: <measured tokens | not measured>
+
+LLMLingua
+Status: <USED | SKIPPED | AVAILABLE | UNAVAILABLE | FAILED>
+Reason: <reason if skipped/failed/available>
+Saved: <measured tokens | not measured>
+
+ccusage
+Status: <AVAILABLE | UNAVAILABLE | FAILED>
+Reason: <session/day tracking status>
+
+Context
+Before: <tokens | not measured>
+After:  <tokens | not measured>
+
+────────────────────────────────
+Run saved:     <tokens | 0 tokens | not fully measured>
+Project saved: <tokens | not measured>
+
+<🧠 Token efficiency was used | ℹ️ No token optimization was required for this run.>
