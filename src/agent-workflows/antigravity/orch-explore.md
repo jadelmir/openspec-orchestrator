@@ -17,6 +17,8 @@ OpenSpec is the ONLY source of truth.
 - MUST NOT edit project files.
 - MUST NOT edit OpenSpec files.
 - Read the minimum relevant context first.
+- Prefer relevant durable technical docs under the configured docs root before broad repository scans when they can answer architecture/API/database/setup questions.
+- Treat docs as current implementation reference only; requirements, plans, tasks, progress, changes, and archives remain in OpenSpec.
 - Prefer targeted file reads.
 - Use RTK for supported verbose terminal commands.
 - Use Repomix only when broad repository context is necessary.
@@ -27,12 +29,13 @@ OpenSpec is the ONLY source of truth.
 ## Workflow
 
 1. Inspect relevant OpenSpec state.
-2. Identify the minimum files needed.
-3. Explore those files without modification.
-4. If broader context is required, apply Orch's Repomix policy.
-5. If context is still large, apply Orch's LLMLingua policy.
-6. Use RTK for supported verbose command output.
-7. Return findings and the mandatory Orch Run Summary.
+2. Read relevant current-system docs when useful.
+3. Identify the minimum files needed.
+4. Explore those files without modification.
+5. If broader context is required, apply Orch's Repomix policy.
+6. If context is still large, apply Orch's LLMLingua policy.
+7. Use RTK for supported verbose command output.
+8. Return findings and the mandatory Orch Run Summary.
 
 ## Mandatory Orch Run Summary
 

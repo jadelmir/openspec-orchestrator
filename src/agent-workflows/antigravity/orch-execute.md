@@ -17,23 +17,26 @@ OpenSpec is the ONLY source of truth. Orch routing is operational only.
 - Use provider-neutral execution tiers: lightweight, default, strong. Unsupported tiers are advisory and MUST be reported as such.
 - Start with targeted context and reuse Orch token policy for Repomix/LLMLingua decisions.
 - Parallelize only when dependency edges, known write scopes, global-change risk, and adapter parallel capability all permit it. Unknown write scope means sequential.
+- When approved implementation changes documented architecture, APIs, database behavior, setup, deployment, operations, or product reference, update only the relevant current-system docs as part of that approved work.
+- MUST NOT create documentation that duplicates OpenSpec plans/tasks/progress/change state.
 - Record OpenSpec progress only through OpenSpec.
-- Keep selected agent, tier, context strategy, parallelism, reasons, and measurable usage in Orch operational telemetry, not task state.
+- Keep selected agent, tier, context strategy, parallelism, reasons, documentation impact, and measurable usage in Orch operational telemetry, not task state.
 - Never fabricate token usage or savings.
 
 ## Workflow
 
 1. Read approved OpenSpec work.
 2. Identify the next incomplete OpenSpec task.
-3. Derive WorkUnits tied to that task.
+3. Derive WorkUnits tied to that task, including documentation impact when relevant.
 4. Allocate targeted/broad/compressed context through Orch policy.
 5. Route through the detected agent registry.
 6. Analyze conservative parallelism.
 7. Execute/delegate with the selected adapter and effective tier.
-8. Verify appropriately.
-9. Update progress through OpenSpec only.
-10. Record routing telemetry and continue until complete or blocked.
-11. Display execution results and the mandatory Orch run summary.
+8. Update only relevant current-system docs when the approved implementation requires it.
+9. Verify appropriately.
+10. Update progress through OpenSpec only.
+11. Record routing telemetry and continue until complete or blocked.
+12. Display execution results and the mandatory Orch run summary.
 
 ## Mandatory Orch Run Summary
 

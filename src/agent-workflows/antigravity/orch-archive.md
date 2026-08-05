@@ -14,6 +14,8 @@ OpenSpec is the ONLY source of truth.
 ## MUST
 
 - Verify the OpenSpec work is complete.
+- If the approved work declared or clearly required documentation synchronization, verify the relevant current-system docs were updated before archival.
+- Documentation verification MUST NOT create a second task/archive state; OpenSpec remains archive authority.
 - Use RTK for supported verification commands.
 - MUST NOT archive incomplete or failed work.
 - MUST NOT create an Orch archive.
@@ -24,10 +26,11 @@ OpenSpec is the ONLY source of truth.
 
 1. Read the relevant OpenSpec change.
 2. Confirm required tasks are complete.
-3. Run relevant verification.
-4. If verification fails, stop and report the issue, but STILL present mandatory Orch Run Summary.
-5. If complete, use the installed OpenSpec archive workflow.
-6. Return the archive result and mandatory Orch Run Summary.
+3. Verify required documentation synchronization when applicable.
+4. Run relevant verification.
+5. If verification fails, stop and report the issue, but STILL present mandatory Orch Run Summary.
+6. If complete, use the installed OpenSpec archive workflow.
+7. Return the archive result and mandatory Orch Run Summary.
 
 ## Mandatory Orch Run Summary
 

@@ -18,6 +18,8 @@ Orch does not maintain separate specifications, plans, tasks, changes, or archiv
 - MUST NOT apply OpenSpec changes.
 - MUST NOT archive changes.
 - Read the minimum relevant context first.
+- Prefer relevant durable technical docs under the configured docs root before broad repository scans when useful.
+- Treat docs as current implementation reference only; planning/state belongs in OpenSpec.
 - Prefer targeted file reads over broad repository reads.
 - Use RTK for supported verbose shell, git, test, and build commands.
 - Use Repomix only when broader repository context is actually necessary.
@@ -28,58 +30,14 @@ Orch does not maintain separate specifications, plans, tasks, changes, or archiv
 ## Workflow
 
 1. Read relevant OpenSpec context.
-2. Identify the minimum project files required.
-3. Inspect those files without modifying them.
-4. If targeted context is insufficient, use the Orch Repomix policy.
-5. If context remains above the configured LLMLingua threshold, allow Orch compression.
-6. Prefer RTK for supported terminal commands.
-7. Return findings and the mandatory run summary.
+2. Read relevant current-system docs when useful.
+3. Identify the minimum project files required.
+4. Inspect those files without modifying them.
+5. If targeted context is insufficient, use the Orch Repomix policy.
+6. If context remains above the configured LLMLingua threshold, allow Orch compression.
+7. Prefer RTK for supported terminal commands.
+8. Return findings and the mandatory run summary.
 
 ## Mandatory Orch Run Summary
 
-At the end of this workflow, you MUST provide an Orch token-efficiency summary.
-
-The summary MUST distinguish:
-- tool available
-- tool used
-- tool skipped
-- tool unavailable
-- tool failed
-
-MUST NOT fabricate token values. If exact usage or savings are unavailable, print "not measured".
-
-Expected report structure:
-
-🧠 ORCH TOKEN EFFICIENCY
-────────────────────────────────
-Workflow: orch-explore
-
-RTK
-Status: <USED | SKIPPED | AVAILABLE | UNAVAILABLE | FAILED>
-Reason: <reason if skipped/failed/available>
-Saved: <measured tokens | not measured>
-
-Repomix
-Status: <USED | SKIPPED | AVAILABLE | UNAVAILABLE | FAILED>
-Reason: <reason if skipped/failed/available>
-Saved: <measured tokens | not measured>
-
-LLMLingua
-Status: <USED | SKIPPED | AVAILABLE | UNAVAILABLE | FAILED>
-Reason: <reason if skipped/failed/available>
-Saved: <measured tokens | not measured>
-
-ccusage
-Status: <AVAILABLE | UNAVAILABLE | FAILED>
-Tracking: session/day usage
-Per-workflow usage: not directly attributable
-
-Context
-Before: <tokens | not measured>
-After:  <tokens | not measured>
-
-────────────────────────────────
-Run saved:     <tokens | 0 tokens | not fully measured>
-Project saved: <tokens | not measured>
-
-<🧠 Token efficiency was used | ℹ️ No token optimization was required for this run.>
+At the end of this workflow, you MUST provide an Orch token-efficiency summary. Distinguish tool available/used/skipped/unavailable/failed and MUST NOT fabricate token values; use `not measured` when unavailable.
