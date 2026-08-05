@@ -1,12 +1,13 @@
 import { commandExists } from "../core/exec.js";
 import { getRtkStatus } from "../token/rtk.js";
 import { getRepomixStatus } from "../token/repomix.js";
-import { getCcusageStatus } from "../token/ccusage.js";
 import { getLLMLinguaStatus } from "../token/llmlingua.js";
+import { getDefaultUsageProvider } from "../token/usageProvider.js";
 
-function line(ok: boolean, name: string, detail?: string) {
-  const icon = ok ? "✅" : "⚠️";
-  console.log(`${icon} ${name}${detail ? ` — ${detail}` : ""}`);
+function line(kind: "required" | "optional", ok: boolean, name: string, detail?: string, fix?: string) {
+  const icon = ok ? "✅" : kind === "required" ? "❌" : "⚠️";
+  console.log(`${icon} ${name} [${kind}]${detail ? ` — ${detail}` : ""}`);
+  if (!ok && fix) console.log(`   Fix: ${fix}`);
 }
 
 export async function doctorCommand() {
@@ -18,22 +19,21 @@ export async function doctorCommand() {
   const openspec = await commandExists("openspec", ["--version"]);
   const rtk = await getRtkStatus();
   const repomix = await getRepomixStatus();
-  const ccusage = await getCcusageStatus();
   const llm = getLLMLinguaStatus();
+  const usage = await getDefaultUsageProvider().status();
 
-  line(node.installed, "Node.js", node.version);
-  line(git.installed, "Git", git.version);
-  line(openspec.installed, "OpenSpec", openspec.version);
-  line(rtk.installed, "RTK", rtk.version);
-  line(repomix.installed, "Repomix", repomix.version);
-  line(ccusage.installed, "ccusage", ccusage.version);
-  line(llm.installed, "LLMLingua", llm.installed ? llm.python : "optional");
+  line("required", node.installed, "Node.js", node.version || node.error, "Install Node.js 20 or newer.");
+  line("required", git.installed, "Git", git.version || git.error, "Install Git and ensure it is on PATH.");
+  line("required", openspec.installed, "OpenSpec", openspec.version || openspec.error, "Install OpenSpec before using Orch workflows.");
+  line("optional", rtk.installed, "RTK", rtk.version || rtk.error, "Run orch init and choose RTK installation.");
+  line("optional", repomix.installed, "Repomix", repomix.version || repomix.error, "Run orch init and choose Repomix installation.");
+  line("optional", llm.installed, "LLMLingua", llm.installed ? llm.python : "not installed", "Install only if you want large-context compression.");
+  line("optional", usage.available, usage.label, usage.version || usage.detail, "Install/configure a supported usage provider if you want usage visibility.");
 
-  const optimizationActive =
-    rtk.installed || repomix.installed || llm.installed;
+  const requiredHealthy = node.installed && git.installed && openspec.installed;
+  const optimizationActive = rtk.installed || repomix.installed || llm.installed;
 
   console.log("");
-  console.log(
-    `🧠 Token Efficiency: ${optimizationActive ? "ACTIVE" : "INACTIVE"}`
-  );
+  console.log(`Core health: ${requiredHealthy ? "✅ READY" : "❌ NEEDS ATTENTION"}`);
+  console.log(`🧠 Token Efficiency: ${optimizationActive ? "ACTIVE" : "INACTIVE"}`);
 }
