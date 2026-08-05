@@ -6,95 +6,72 @@ Orch is a thin orchestration and token-efficiency layer around OpenSpec.
 
 ## Core boundary
 
-OpenSpec is the ONLY source of truth for:
+OpenSpec is the ONLY source of truth for specs, plans, proposals/changes, tasks, progress state, and archives.
 
-- specs
-- plans
-- proposals / changes
-- tasks
-- progress state
-- archives
+Orch owns the operational layer around OpenSpec: agent orchestration, agent/tool integration, token-efficiency policy, context preparation, usage visibility, operational reporting, project-level configuration, and read-only exploration helpers.
 
-Orch MUST NOT create competing persistent workflow state for any of those things.
-
-Orch owns the operational layer around OpenSpec:
-
-- agent orchestration
-- agent/tool integration
-- token-efficiency policy
-- context preparation
-- token measurement and reporting
-- project-level Orch configuration
-- read-only exploration helpers
-
-## Orch workflow commands
-
-The slash commands stay intentionally:
+## Workflow entry points
 
 - `/orch-explore`
 - `/orch-plan`
 - `/orch-execute`
 - `/orch-archive`
 
-These are **Orch entry points**, not replacements for OpenSpec workflows.
+These are Orch entry points around OpenSpec workflows, not replacements for OpenSpec state.
 
-### `/orch-plan`
+## Managed agent assets
 
-Delegates persistent planning to the installed OpenSpec planning/proposal workflow. Orch adds minimum-context selection, agent orchestration, token-efficiency tools, and reporting. Orch MUST NOT create a second plan.
+Files installed into `.codex/skills/...` and `.agents/workflows/...` are marked with:
 
-### `/orch-execute`
+```text
+<!-- orch-managed:v1 -->
+```
 
-Executes only work approved in OpenSpec. OpenSpec remains authoritative for tasks and progress. Orch decides how to prepare context, route work to agents, optimize tool output, and report token usage/savings.
+Orch may update files carrying this marker. If a file at a managed path does not carry the marker and does not exactly match a legacy Orch-generated file, Orch treats it as user-authored and preserves it.
 
-### `/orch-archive`
+`AGENTS.md` is never overwritten when it already exists.
 
-Delegates the actual archive operation to OpenSpec after verification. Orch may finalize operational metrics/reporting, but MUST NOT maintain a competing archive.
+## Commands
 
-### `/orch-explore`
+```text
+orch init        Initialize config, integrations, and optional tooling
+orch update      Refresh Orch-managed agent assets only
+orch status      Show operational status without duplicating OpenSpec state
+orch doctor      Diagnose required and optional dependencies
+orch tokens      Show usage from the configured usage provider
+orch workflows   List installed slash-workflow entry points
+orch run-report  Show the latest Orch token-efficiency run report
+```
 
-Read-only exploration. It may inspect OpenSpec and repository context while applying Orch token-efficiency rules, but MUST NOT modify project or OpenSpec files.
+## `orch init`
 
-## What `orch init` does
-
-Running `orch init` inside a project:
-
-1. Creates `.orch/config.json`
-2. Detects whether the OpenSpec CLI exists
-3. Detects whether the current project has an `openspec/` directory
-4. Warns you to run `openspec init` if OpenSpec is not initialized
-5. Creates a lightweight `AGENTS.md` for Codex / generic agents
-6. Creates `.agents/rules/orch.md` for Antigravity
-7. Detects RTK
-8. Detects Repomix
-9. Detects ccusage
-10. Detects optional LLMLingua
-11. Prints whether token efficiency is active
+`orch init` is designed to be idempotent. Re-running it preserves custom `.orch/config.json` values, fills in missing defaults, preserves invalid JSON rather than destroying it, preserves existing `AGENTS.md`, and safely refreshes only Orch-managed generated files.
 
 ## Token-efficiency policy
 
-Orch can use:
+Orch centralizes the intended optimization policy:
 
-- **RTK** for supported verbose terminal output
-- **Repomix** when broad repository context is actually required
-- **LLMLingua** only when context remains large enough to justify compression
-- **ccusage** when available for usage visibility
+- targeted/small context → no heavy optimization
+- broad repository context → Repomix when available
+- context above the configured threshold → LLMLingua when available
+- verbose terminal/test/build/git output → RTK when available
+- usage visibility → a pluggable usage provider
 
-A tool being installed does NOT mean it was used. Orch must report actual use and MUST NOT fabricate token savings. If a value cannot be measured, it should say `not measured`.
+The current usage provider implementation uses ccusage for Codex data, but the Orch architecture is not tied to ccusage.
 
-## Windows fixes retained
+A tool being installed does NOT mean it was used. Orch must report actual use and MUST NOT fabricate token savings. If a value cannot be measured, report `not measured`.
 
-This build does NOT use `shell: true`.
-
-On Windows it resolves `npm` to `npm.cmd` and `npx` to `npx.cmd`, avoiding both the Node shell deprecation warning and `spawn npx ENOENT`.
-
-## Install
+## Install from source
 
 ```powershell
 npm install
 npm run build
-npm unlink -g orch
+npm test
+npm unlink -g openspec-orchestrator
 npm link
 ```
+
+The npm package name is `openspec-orchestrator`; the executable remains `orch`.
 
 Verify:
 
@@ -104,36 +81,21 @@ orch --version
 orch doctor
 ```
 
-Expected version: `0.3.0`.
-
 ## Recommended project setup
 
 ```powershell
 cd C:\path\to\your-project
 openspec init
 orch init
+orch status
 ```
 
-Then:
+When upgrading Orch later, refresh generated agent assets with:
 
 ```powershell
-orch status
-orch doctor
+orch update
 ```
 
-## Expected files after init
+## Windows behavior
 
-```text
-your-project/
-├─ .orch/
-│  └─ config.json
-├─ AGENTS.md
-├─ .agents/
-│  └─ rules/
-│     └─ orch.md
-├─ openspec/
-│  └─ ...
-└─ your normal project files
-```
-
-If `AGENTS.md` already exists, Orch preserves it instead of overwriting it. Antigravity's `.agents/rules/orch.md` is regenerated so its Orch rules stay current.
+Orch does not use `shell: true`. On Windows it resolves commands such as `npm`/`npx` to their `.cmd` forms where needed, avoiding shell deprecation warnings and common `spawn ... ENOENT` failures.
