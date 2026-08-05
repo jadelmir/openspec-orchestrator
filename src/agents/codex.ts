@@ -13,6 +13,19 @@ export interface AgentAssetInstallResult {
   status: ManagedWriteResult;
 }
 
+function isLegacyCodexSkill(content: string, skill: string): boolean {
+  const title = `# ${skill
+    .split("-")
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ")}`;
+
+  return (
+    content.includes(title) &&
+    content.includes("OpenSpec is the ONLY source of truth") &&
+    content.includes("ORCH TOKEN EFFICIENCY")
+  );
+}
+
 export async function installCodexSkills(cwd: string): Promise<AgentAssetInstallResult[]> {
   const installed: AgentAssetInstallResult[] = [];
 
@@ -20,7 +33,9 @@ export async function installCodexSkills(cwd: string): Promise<AgentAssetInstall
     const source = path.resolve(__dirname, "../agent-skills/codex", skill, "SKILL.md");
     const destination = path.join(cwd, ".codex", "skills", skill, "SKILL.md");
     const content = await readFile(source, "utf8");
-    const status = await writeManagedFile(destination, content);
+    const status = await writeManagedFile(destination, content, {
+      isLegacyOrchFile: (current) => isLegacyCodexSkill(current, skill)
+    });
     installed.push({ name: skill, status });
   }
 
