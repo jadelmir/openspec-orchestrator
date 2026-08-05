@@ -10,7 +10,7 @@
     "build": "tsc && node scripts/copy-assets.js",
     "dev": "tsx src/cli.ts",
     "start": "node dist/cli.js",
-    "test": "node --import tsx --test test/**/*.test.ts"
+    "test": "node --import tsx --test"
   },
   "repository": {
     "type": "git",
