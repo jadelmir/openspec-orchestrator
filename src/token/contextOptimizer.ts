@@ -1,5 +1,6 @@
 import { estimateTokens } from "./estimateTokens.js";
 import { compressWithLLMLingua, getLLMLinguaStatus } from "./llmlingua.js";
+import { decideTokenPolicy } from "./policy.js";
 
 export interface OptimizeOptions {
   minimumTokens?: number;
@@ -14,30 +15,28 @@ export async function optimizeContext(
   const minimumTokens = options.minimumTokens ?? 8000;
   const targetRatio = options.targetRatio ?? 0.5;
   const minimumTargetTokens = options.minimumTargetTokens ?? 4000;
-
   const originalTokens = estimateTokens(text);
+  const llm = getLLMLinguaStatus();
 
-  if (originalTokens < minimumTokens) {
+  const policy = decideTokenPolicy({
+    estimatedContextTokens: originalTokens,
+    llmlinguaAvailable: llm.installed,
+    llmlinguaMinimumTokens: minimumTokens
+  });
+
+  if (!policy.useLLMLingua) {
     return {
       text,
       optimized: false,
       method: "none",
       originalTokens,
       finalTokens: originalTokens,
-      savedTokens: 0
-    };
-  }
-
-  const llm = getLLMLinguaStatus();
-  if (!llm.installed) {
-    return {
-      text,
-      optimized: false,
-      method: "fallback",
-      originalTokens,
-      finalTokens: originalTokens,
       savedTokens: 0,
-      warning: "LLMLingua is not installed."
+      policyReasons: policy.reasons,
+      warning:
+        originalTokens >= minimumTokens && !llm.installed
+          ? "LLMLingua is not installed."
+          : undefined
     };
   }
 
@@ -56,7 +55,8 @@ export async function optimizeContext(
       method: "llmlingua",
       originalTokens,
       finalTokens,
-      savedTokens: Math.max(0, originalTokens - finalTokens)
+      savedTokens: Math.max(0, originalTokens - finalTokens),
+      policyReasons: policy.reasons
     };
   } catch (error) {
     return {
@@ -66,6 +66,7 @@ export async function optimizeContext(
       originalTokens,
       finalTokens: originalTokens,
       savedTokens: 0,
+      policyReasons: policy.reasons,
       warning: error instanceof Error ? error.message : String(error)
     };
   }
