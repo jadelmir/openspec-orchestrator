@@ -1,3 +1,4 @@
+<!-- orch-managed:v1 -->
 ---
 name: orch-execute
 description: Execute approved OpenSpec work while applying Orch token-efficiency rules.
@@ -66,7 +67,8 @@ Saved: <measured tokens | not measured>
 
 ccusage
 Status: <AVAILABLE | UNAVAILABLE | FAILED>
-Reason: <session/day tracking status>
+Tracking: session/day usage
+Per-workflow usage: not directly attributable
 
 Context
 Before: <tokens | not measured>

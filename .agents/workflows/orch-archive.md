@@ -1,3 +1,4 @@
+<!-- orch-managed:v1 -->
 ---
 name: orch-archive
 description: Verify and archive completed work through OpenSpec.
@@ -61,7 +62,8 @@ Saved: <measured tokens | not measured>
 
 ccusage
 Status: <AVAILABLE | UNAVAILABLE | FAILED>
-Reason: <session/day tracking status>
+Tracking: session/day usage
+Per-workflow usage: not directly attributable
 
 Context
 Before: <tokens | not measured>

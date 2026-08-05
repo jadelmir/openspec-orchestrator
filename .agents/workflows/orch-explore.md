@@ -1,3 +1,4 @@
+<!-- orch-managed:v1 -->
 ---
 name: orch-explore
 description: Read-only project exploration using Orch token-efficiency rules with OpenSpec as the only source of truth.
@@ -66,7 +67,8 @@ Saved: <measured tokens | not measured>
 
 ccusage
 Status: <AVAILABLE | UNAVAILABLE | FAILED>
-Reason: <session/day tracking status>
+Tracking: session/day usage
+Per-workflow usage: not directly attributable
 
 Context
 Before: <tokens | not measured>
