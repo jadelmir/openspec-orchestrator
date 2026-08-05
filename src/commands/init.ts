@@ -5,6 +5,7 @@ import readline from "node:readline/promises";
 import { stdin as input, stdout as output } from "node:process";
 import { commandExists } from "../core/exec.js";
 import { writeManagedFile } from "../core/managedFiles.js";
+import { createDefaultAgentRegistry } from "../agents/defaultRegistry.js";
 import { getRtkStatus } from "../token/rtk.js";
 import { getRepomixStatus } from "../token/repomix.js";
 import { getDefaultUsageProvider } from "../token/usageProvider.js";
@@ -13,8 +14,6 @@ import { installRtk } from "../installers/rtk.js";
 import { installRepomix } from "../installers/repomix.js";
 import { installCcusage } from "../installers/ccusage.js";
 import { installLLMLingua } from "../installers/llmlingua.js";
-import { installCodexSkills } from "../agents/codex.js";
-import { installAntigravityWorkflows } from "../agents/antigravity.js";
 
 export const defaultConfig = {
   version: 1,
@@ -33,12 +32,7 @@ export const defaultConfig = {
 };
 
 async function exists(p: string): Promise<boolean> {
-  try {
-    await access(p, constants.F_OK);
-    return true;
-  } catch {
-    return false;
-  }
+  try { await access(p, constants.F_OK); return true; } catch { return false; }
 }
 
 function isPlainObject(value: unknown): value is Record<string, unknown> {
@@ -46,16 +40,11 @@ function isPlainObject(value: unknown): value is Record<string, unknown> {
 }
 
 export function mergeDefaults<T>(defaults: T, existing: unknown): T {
-  if (!isPlainObject(defaults) || !isPlainObject(existing)) {
-    return (existing === undefined ? defaults : existing) as T;
-  }
-
+  if (!isPlainObject(defaults) || !isPlainObject(existing)) return (existing === undefined ? defaults : existing) as T;
   const merged: Record<string, unknown> = { ...defaults };
   for (const [key, value] of Object.entries(existing)) {
     const defaultValue = merged[key];
-    merged[key] = isPlainObject(defaultValue) && isPlainObject(value)
-      ? mergeDefaults(defaultValue, value)
-      : value;
+    merged[key] = isPlainObject(defaultValue) && isPlainObject(value) ? mergeDefaults(defaultValue, value) : value;
   }
   return merged as T;
 }
@@ -70,9 +59,7 @@ async function confirm(message: string): Promise<boolean> {
     const answer = await rl.question(`${message} [Y/n] `);
     const normalized = answer.trim().toLowerCase();
     return normalized === "" || normalized === "y" || normalized === "yes";
-  } finally {
-    rl.close();
-  }
+  } finally { rl.close(); }
 }
 
 export async function ensureConfig(configPath: string) {
@@ -80,15 +67,9 @@ export async function ensureConfig(configPath: string) {
     await writeFile(configPath, JSON.stringify(defaultConfig, null, 2) + "\n", "utf8");
     return { created: true, updated: false, invalid: false };
   }
-
   const raw = await readFile(configPath, "utf8");
   let existing: unknown;
-  try {
-    existing = JSON.parse(raw);
-  } catch {
-    return { created: false, updated: false, invalid: true };
-  }
-
+  try { existing = JSON.parse(raw); } catch { return { created: false, updated: false, invalid: true }; }
   const merged = mergeDefaults(defaultConfig, existing);
   const next = JSON.stringify(merged, null, 2) + "\n";
   if (next !== raw) {
@@ -102,10 +83,9 @@ async function writeAgentFiles(cwd: string) {
   const agentsMd = path.join(cwd, "AGENTS.md");
   const agentsExists = await exists(agentsMd);
   if (!agentsExists) await writeFile(agentsMd, agentInstructions(), "utf8");
-
   const antiFile = path.join(cwd, ".agents", "rules", "orch.md");
   const antiStatus = await writeManagedFile(antiFile, agentInstructions());
-  return { agentsMd, antiFile, agentsCreated: !agentsExists, antiStatus };
+  return { agentsMd, agentsCreated: !agentsExists, antiStatus };
 }
 
 async function ensureTokenTools() {
@@ -114,42 +94,18 @@ async function ensureTokenTools() {
   let usage = await getDefaultUsageProvider().status();
   let llm = getLLMLinguaStatus();
 
-  if (!rtk.installed) {
-    console.log("\n⚠️ RTK not found.");
-    if (await confirm("Install RTK now?")) {
-      const result = await installRtk();
-      if (!result.success) console.log(`⚠️ ${result.error}`);
-      rtk = await getRtkStatus();
-    }
+  if (!rtk.installed && await confirm("\nRTK not found. Install RTK now?")) {
+    const result = await installRtk(); if (!result.success) console.log(`⚠️ ${result.error}`); rtk = await getRtkStatus();
   }
-
-  if (!repomix.installed) {
-    console.log("\n⚠️ Repomix not found.");
-    if (await confirm("Install Repomix now?")) {
-      const result = await installRepomix();
-      if (!result.success) console.log(`⚠️ ${result.error}`);
-      repomix = await getRepomixStatus();
-    }
+  if (!repomix.installed && await confirm("\nRepomix not found. Install Repomix now?")) {
+    const result = await installRepomix(); if (!result.success) console.log(`⚠️ ${result.error}`); repomix = await getRepomixStatus();
   }
-
-  if (!usage.available) {
-    console.log("\n⚠️ Usage provider not found.");
-    if (await confirm("Install ccusage as the current usage provider?")) {
-      const result = await installCcusage();
-      if (!result.success) console.log(`⚠️ ${result.error}`);
-      usage = await getDefaultUsageProvider().status();
-    }
+  if (!usage.available && await confirm("\nUsage provider not found. Install ccusage as the current provider?")) {
+    const result = await installCcusage(); if (!result.success) console.log(`⚠️ ${result.error}`); usage = await getDefaultUsageProvider().status();
   }
-
-  if (!llm.installed) {
-    console.log("\n⚠️ LLMLingua not found (optional).");
-    if (await confirm("Install LLMLingua now?")) {
-      const result = await installLLMLingua();
-      if (!result.success) console.log(`⚠️ ${result.error}`);
-      llm = getLLMLinguaStatus();
-    }
+  if (!llm.installed && await confirm("\nLLMLingua not found (optional). Install now?")) {
+    const result = await installLLMLingua(); if (!result.success) console.log(`⚠️ ${result.error}`); llm = getLLMLinguaStatus();
   }
-
   return { rtk, repomix, usage, llm };
 }
 
@@ -165,12 +121,11 @@ export async function initCommand(cwd = process.cwd()) {
   await mkdir(orchDir, { recursive: true });
   const configPath = path.join(orchDir, "config.json");
   const configResult = await ensureConfig(configPath);
-
   const openspecProject = await exists(path.join(cwd, "openspec"));
   const openspecCli = await commandExists("openspec", ["--version"]);
   const agentFiles = await writeAgentFiles(cwd);
-  const codexSkills = await installCodexSkills(cwd);
-  const antigravityWorkflows = await installAntigravityWorkflows(cwd);
+  const registry = createDefaultAgentRegistry();
+  const integrations = await registry.installAll(cwd);
   const { rtk, repomix, usage, llm } = await ensureTokenTools();
 
   if (configResult.invalid) console.log(`⚠️ Invalid Orch config preserved: ${configPath}`);
@@ -182,8 +137,9 @@ export async function initCommand(cwd = process.cwd()) {
   console.log(`${managedIcon(agentFiles.antiStatus)} Antigravity rule: ${agentFiles.antiStatus}`);
 
   console.log("\nAgent integrations");
-  for (const item of codexSkills) console.log(`${managedIcon(item.status)} Codex ${item.name}: ${item.status}`);
-  for (const item of antigravityWorkflows) console.log(`${managedIcon(item.status)} Antigravity /${item.name}: ${item.status}`);
+  for (const { adapter, results } of integrations) {
+    for (const item of results) console.log(`${managedIcon(item.status)} ${adapter.displayName} ${item.name}: ${item.status}`);
+  }
 
   console.log("");
   if (openspecCli.installed && openspecProject) console.log("✅ OpenSpec: initialized");
@@ -195,8 +151,6 @@ export async function initCommand(cwd = process.cwd()) {
   console.log(`${repomix.installed ? "✅" : "⚪"} Repomix${repomix.version ? ` — ${repomix.version}` : ""}`);
   console.log(`${llm.installed ? "✅" : "⚪"} LLMLingua${llm.installed ? ` — ${llm.python}` : " — optional"}`);
   console.log(`${usage.available ? "✅" : "⚪"} Usage provider: ${usage.label}${usage.version ? ` — ${usage.version}` : ""}`);
-
-  const active = rtk.installed || repomix.installed || llm.installed;
-  console.log(`\n🧠 Token Efficiency: ${active ? "ACTIVE" : "INACTIVE"}`);
+  console.log(`\n🧠 Token Efficiency: ${rtk.installed || repomix.installed || llm.installed ? "ACTIVE" : "INACTIVE"}`);
   console.log("OpenSpec remains the only source of truth.");
 }
