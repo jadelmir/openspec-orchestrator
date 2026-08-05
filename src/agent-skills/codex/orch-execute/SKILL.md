@@ -51,4 +51,22 @@ OpenSpec is the ONLY source of truth. Orch routing decisions are operational onl
 
 ## Mandatory Orch Run Summary
 
-At completion (even if blocked/failed), distinguish actual optimization-tool states and report `not measured` for unavailable token values. Include routed WorkUnits with selected agent, requested/effective tier, context strategy, parallel/sequential decision, and reasons.
+At completion (even if blocked/failed), distinguish tool available/used/skipped/unavailable/failed and report `not measured` for unavailable token values. Include routed WorkUnits with selected agent, requested/effective tier, context strategy, parallel/sequential decision, and reasons.
+
+🧠 ORCH TOKEN EFFICIENCY
+────────────────────────────────
+Workflow: orch-execute
+
+RTK / Repomix / LLMLingua / usage provider
+Status: <actual status>
+Saved/usage: <measured value | not measured>
+
+Routing
+- <work unit>: <agent>, <tier>, <context>, <parallel|sequential>, <reason>
+
+Context
+Before: <tokens | not measured>
+After: <tokens | not measured>
+
+Run saved: <tokens | not fully measured>
+Project saved: <tokens | not measured>

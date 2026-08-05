@@ -40,4 +40,49 @@ Orch does not maintain separate specifications, plans, tasks, changes, or archiv
 
 ## Mandatory Orch Run Summary
 
-At the end of this workflow, you MUST provide an Orch token-efficiency summary. Distinguish tool available/used/skipped/unavailable/failed and MUST NOT fabricate token values; use `not measured` when unavailable.
+At the end of this workflow, you MUST provide an Orch token-efficiency summary.
+
+The summary MUST distinguish:
+- tool available
+- tool used
+- tool skipped
+- tool unavailable
+- tool failed
+
+MUST NOT fabricate token values. If exact usage or savings are unavailable, print "not measured".
+
+Expected report structure:
+
+🧠 ORCH TOKEN EFFICIENCY
+────────────────────────────────
+Workflow: orch-explore
+
+RTK
+Status: <USED | SKIPPED | AVAILABLE | UNAVAILABLE | FAILED>
+Reason: <reason if skipped/failed/available>
+Saved: <measured tokens | not measured>
+
+Repomix
+Status: <USED | SKIPPED | AVAILABLE | UNAVAILABLE | FAILED>
+Reason: <reason if skipped/failed/available>
+Saved: <measured tokens | not measured>
+
+LLMLingua
+Status: <USED | SKIPPED | AVAILABLE | UNAVAILABLE | FAILED>
+Reason: <reason if skipped/failed/available>
+Saved: <measured tokens | not measured>
+
+ccusage
+Status: <AVAILABLE | UNAVAILABLE | FAILED>
+Tracking: session/day usage
+Per-workflow usage: not directly attributable
+
+Context
+Before: <tokens | not measured>
+After:  <tokens | not measured>
+
+────────────────────────────────
+Run saved:     <tokens | 0 tokens | not fully measured>
+Project saved: <tokens | not measured>
+
+<🧠 Token efficiency was used | ℹ️ No token optimization was required for this run.>
