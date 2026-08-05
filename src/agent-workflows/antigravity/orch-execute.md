@@ -11,6 +11,8 @@ OpenSpec is the ONLY source of truth. Orch routing is operational only.
 
 - Read the approved OpenSpec change/tasks first and execute only approved scope.
 - Derive bounded WorkUnits that reference their originating OpenSpec task.
+- Let Orch infer documentation impact from bounded WorkUnit file hints when route/controller/API, migration/schema/database, deployment-manifest, or setup-environment signals are present; explicit documentationImpact may override the inference.
+- Treat inferred documentation impact as advisory operational metadata, never as OpenSpec task/change state.
 - Route every WorkUnit through the Orch agent registry before delegation.
 - Filter candidates by required capabilities and fail early when none are capable.
 - Prefer an explicitly configured capable agent; otherwise use deterministic routing.
@@ -27,7 +29,7 @@ OpenSpec is the ONLY source of truth. Orch routing is operational only.
 
 1. Read approved OpenSpec work.
 2. Identify the next incomplete OpenSpec task.
-3. Derive WorkUnits tied to that task, including documentation impact when relevant.
+3. Derive WorkUnits tied to that task; Orch automatically infers conservative documentation impact from each WorkUnit's file hints unless explicitly supplied.
 4. Allocate targeted/broad/compressed context through Orch policy.
 5. Route through the detected agent registry.
 6. Analyze conservative parallelism.
@@ -40,4 +42,4 @@ OpenSpec is the ONLY source of truth. Orch routing is operational only.
 
 ## Mandatory Orch Run Summary
 
-Report actual status for RTK, Repomix, LLMLingua, and the usage provider; use `not measured` when necessary. Include each routed WorkUnit with agent, requested/effective tier, context strategy, parallel/sequential decision, and human-readable reasons.
+Report actual status for RTK, Repomix, LLMLingua, and the usage provider; use `not measured` when necessary. Include each routed WorkUnit with agent, requested/effective tier, context strategy, parallel/sequential decision, documentation impact, and human-readable reasons.

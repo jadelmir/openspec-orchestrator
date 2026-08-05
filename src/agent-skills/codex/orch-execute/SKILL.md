@@ -11,6 +11,8 @@ OpenSpec is the ONLY source of truth. Orch routing decisions are operational onl
 - Read the active/approved OpenSpec change and tasks before modifying code.
 - Execute only work that belongs to the approved OpenSpec scope.
 - Derive bounded operational WorkUnits that reference their originating OpenSpec task.
+- Let Orch infer documentation impact from WorkUnit file hints when conservative API, database, deployment, or setup signals are present; an explicit documentationImpact value may override inference.
+- Treat inferred documentation impact as advisory operational metadata, never as OpenSpec task/change state.
 - Include documentation impact on WorkUnits when approved implementation may change documented architecture, APIs, database behavior, setup, deployment, operations, or product reference.
 - Route each WorkUnit through the Orch agent registry before delegation.
 - Filter agents by required capabilities before selection.
@@ -30,7 +32,7 @@ OpenSpec is the ONLY source of truth. Orch routing decisions are operational onl
 
 1. Read the approved OpenSpec work.
 2. Identify the next incomplete OpenSpec task.
-3. Derive one or more bounded WorkUnits referencing that task and any documentation impact.
+3. Derive one or more bounded WorkUnits referencing that task; conservative documentation impact is inferred automatically from file hints unless explicitly supplied.
 4. Allocate context through the Orch context policy.
 5. Route each WorkUnit through the detected agent registry.
 6. Analyze conservative parallelism; default to sequential when uncertain.
@@ -51,7 +53,7 @@ OpenSpec is the ONLY source of truth. Orch routing decisions are operational onl
 
 ## Mandatory Orch Run Summary
 
-At completion (even if blocked/failed), distinguish tool available/used/skipped/unavailable/failed and report `not measured` for unavailable token values. Include routed WorkUnits with selected agent, requested/effective tier, context strategy, parallel/sequential decision, and reasons.
+At completion (even if blocked/failed), distinguish tool available/used/skipped/unavailable/failed and report `not measured` for unavailable token values. Include routed WorkUnits with selected agent, requested/effective tier, context strategy, parallel/sequential decision, documentation impact, and reasons.
 
 🧠 ORCH TOKEN EFFICIENCY
 ────────────────────────────────
@@ -62,7 +64,7 @@ Status: <actual status>
 Saved/usage: <measured value | not measured>
 
 Routing
-- <work unit>: <agent>, <tier>, <context>, <parallel|sequential>, <reason>
+- <work unit>: <agent>, <tier>, <context>, <parallel|sequential>, <documentation impact>, <reason>
 
 Context
 Before: <tokens | not measured>

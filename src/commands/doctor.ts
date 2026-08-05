@@ -5,6 +5,7 @@ import { getRepomixStatus } from "../token/repomix.js";
 import { getLLMLinguaStatus } from "../token/llmlingua.js";
 import { getDefaultUsageProvider } from "../token/usageProvider.js";
 import { analyzeProjectOrganization } from "../organization/projectOrganization.js";
+import { scanDocumentationSignals } from "../organization/documentationSignals.js";
 
 function line(kind: "required" | "optional", ok: boolean, name: string, detail?: string, fix?: string) {
   const icon = ok ? "✅" : kind === "required" ? "❌" : "⚠️";
@@ -27,6 +28,12 @@ export async function getOrganizationDoctorLines(cwd = process.cwd()): Promise<s
     if (report.planningWarnings.includes(item.source)) continue;
     if (item.safeToMove && item.destination) lines.push(`WARN Technical document found at repository root: ${item.source}\n     Suggested: ${item.destination}`);
     else lines.push(`WARN Markdown document at repository root requires manual review: ${item.source}`);
+  }
+
+  const signals = await scanDocumentationSignals(cwd, report.docsRoot);
+  for (const signal of signals) {
+    if (signal.docsPresent) continue;
+    lines.push(`WARN ${signal.area} implementation detected but no ${signal.area} reference documentation was found under ${signal.docsPath}\n     Signals: ${signal.implementationSignals.join(", ")}`);
   }
   return lines;
 }

@@ -9,6 +9,7 @@ import { ensureConfig } from "../src/commands/init.js";
 import { getOrganizationDoctorLines } from "../src/commands/doctor.js";
 import { organizeCommand } from "../src/commands/organize.js";
 import { createWorkUnit } from "../src/orchestration/workUnit.js";
+import { inferDocumentationImpact, scanDocumentationSignals } from "../src/organization/documentationSignals.js";
 import {
   analyzeProjectOrganization,
   applyOrganizationSuggestions,
@@ -27,6 +28,14 @@ async function project(): Promise<string> {
 
 async function pathExists(target: string): Promise<boolean> {
   try { await access(target); return true; } catch { return false; }
+}
+
+async function captureLogs(run: () => Promise<number>): Promise<{ code: number; output: string }> {
+  const lines: string[] = [];
+  const original = console.log;
+  console.log = (...args: unknown[]) => lines.push(args.map(String).join(" "));
+  try { return { code: await run(), output: lines.join("\n") }; }
+  finally { console.log = original; }
 }
 
 test("organization config defaults are merged without overwriting custom values", async () => {
@@ -99,11 +108,33 @@ test("scanner respects disabled organization and custom docs root", async () => 
 test("organize dry run does not modify the filesystem", async () => {
   const dir = await project();
   await writeFile(path.join(dir, "API.md"), "api bytes\n");
-  const original = console.log;
-  console.log = () => {};
-  try { await organizeCommand({}, dir); } finally { console.log = original; }
+  const result = await captureLogs(() => organizeCommand({}, dir));
+  assert.equal(result.code, 0);
   assert.equal(await readFile(path.join(dir, "API.md"), "utf8"), "api bytes\n");
   assert.equal(await pathExists(path.join(dir, "docs", "api", "api.md")), false);
+});
+
+test("organize --json returns machine-readable report without filesystem changes", async () => {
+  const dir = await project();
+  await writeFile(path.join(dir, "API.md"), "api");
+  const result = await captureLogs(() => organizeCommand({ json: true }, dir));
+  const parsed = JSON.parse(result.output);
+  assert.equal(result.code, 0);
+  assert.equal(parsed.command, "organize");
+  assert.equal(parsed.mode, "dry-run");
+  assert.equal(parsed.summary.safeMoves, 1);
+  assert.equal(parsed.report.suggestions[0].source, "API.md");
+  assert.equal(await pathExists(path.join(dir, "docs", "api", "api.md")), false);
+});
+
+test("organize --check fails only for high-confidence safe-move violations", async () => {
+  const dir = await project();
+  await writeFile(path.join(dir, "NOTES.md"), "notes");
+  assert.equal((await captureLogs(() => organizeCommand({ check: true }, dir))).code, 0);
+  await writeFile(path.join(dir, "API.md"), "api");
+  const checked = await captureLogs(() => organizeCommand({ check: true, json: true }, dir));
+  assert.equal(checked.code, 1);
+  assert.equal(JSON.parse(checked.output).exitCode, 1);
 });
 
 test("apply moves only safe files, preserves bytes, handles conflicts, and is idempotent", async () => {
@@ -139,6 +170,65 @@ test("invalid or unsafe config prevents organization mutation", async () => {
   assert.equal(await pathExists(path.join(dir, "API.md")), true);
 });
 
+test("documentation impact inference is conservative and automatic for writable WorkUnits", () => {
+  const impact = inferDocumentationImpact(["src/api/routes.ts", "prisma/schema.prisma", "Dockerfile", "src/ui/Button.tsx"]);
+  assert.deepEqual(impact?.paths, ["docs/api/", "docs/database/", "docs/deployment/"]);
+  const work = createWorkUnit({
+    id: "wu-auto",
+    sourceTaskRef: "openspec:task-auto",
+    objective: "Change API and schema",
+    filesHint: ["src/controllers/users.ts", "db/migrations/001.sql"],
+    risk: "medium",
+    complexity: "medium",
+    requiresWrites: true,
+    requiresCommands: false
+  });
+  assert.deepEqual(work.documentationImpact?.paths, ["docs/api/", "docs/database/"]);
+  const readOnly = createWorkUnit({
+    id: "wu-read",
+    sourceTaskRef: "openspec:task-read",
+    objective: "Inspect API",
+    filesHint: ["src/api/routes.ts"],
+    risk: "low",
+    complexity: "small",
+    requiresWrites: false,
+    requiresCommands: false
+  });
+  assert.equal(readOnly.documentationImpact, undefined);
+});
+
+test("explicit WorkUnit documentation impact overrides inference and deduplicates paths", () => {
+  const work = createWorkUnit({
+    id: "wu-1",
+    sourceTaskRef: "openspec:task-1",
+    objective: "Implement API behavior",
+    filesHint: ["src/api/routes.ts"],
+    risk: "low",
+    complexity: "small",
+    requiresWrites: true,
+    requiresCommands: false,
+    documentationImpact: { required: true, paths: ["docs/custom/api.md", "docs/custom/api.md", ""], reasons: ["explicit", "explicit"] }
+  });
+  assert.deepEqual(work.documentationImpact, { required: true, paths: ["docs/custom/api.md"], reasons: ["explicit"] });
+});
+
+test("doctor warns when implementation signals exist without category docs", async () => {
+  const dir = await project();
+  await mkdir(path.join(dir, "openspec"));
+  await mkdir(path.join(dir, "docs"));
+  await mkdir(path.join(dir, "src", "api"), { recursive: true });
+  await writeFile(path.join(dir, "src", "api", "routes.ts"), "export {};");
+  const signals = await scanDocumentationSignals(dir);
+  assert.equal(signals.find((item) => item.area === "api")?.docsPresent, false);
+  let lines = await getOrganizationDoctorLines(dir);
+  assert.ok(lines.some((line) => line.includes("api implementation detected") && line.includes("docs/api/")));
+
+  await mkdir(path.join(dir, "docs", "api"), { recursive: true });
+  await writeFile(path.join(dir, "docs", "api", "reference.md"), "# API");
+  lines = await getOrganizationDoctorLines(dir);
+  assert.equal(lines.some((line) => line.includes("api implementation detected but no")), false);
+});
+
 test("doctor organization output warns without treating hygiene findings as errors", async () => {
   const dir = await project();
   await mkdir(path.join(dir, "openspec"));
@@ -152,24 +242,12 @@ test("doctor organization output warns without treating hygiene findings as erro
   assert.equal(lines.some((line) => line.startsWith("ERROR")), false);
 });
 
-test("WorkUnit documentation impact remains optional operational metadata and deduplicates paths", () => {
-  const work = createWorkUnit({
-    id: "wu-1",
-    sourceTaskRef: "openspec:task-1",
-    objective: "Implement API behavior",
-    risk: "low",
-    complexity: "small",
-    requiresWrites: true,
-    requiresCommands: false,
-    documentationImpact: { required: true, paths: ["docs/api/api.md", "docs/api/api.md", ""] }
-  });
-  assert.deepEqual(work.documentationImpact, { required: true, paths: ["docs/api/api.md"] });
-});
-
-test("CLI help registers orch organize and --apply", async () => {
+test("CLI help registers orch organize apply check and json flags", async () => {
   const cli = path.join(process.cwd(), "src", "cli.ts");
   const help = await execFileAsync(process.execPath, ["--import", "tsx", cli, "--help"], { cwd: process.cwd() });
   assert.match(help.stdout, /organize/);
   const organizeHelp = await execFileAsync(process.execPath, ["--import", "tsx", cli, "organize", "--help"], { cwd: process.cwd() });
   assert.match(organizeHelp.stdout, /--apply/);
+  assert.match(organizeHelp.stdout, /--check/);
+  assert.match(organizeHelp.stdout, /--json/);
 });
