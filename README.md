@@ -10,6 +10,40 @@ OpenSpec is the ONLY source of truth for specs, plans, proposals/changes, tasks,
 
 Orch owns the operational layer around OpenSpec: agent orchestration, agent/tool integration, token-efficiency policy, context preparation, usage visibility, operational reporting, project-level configuration, and read-only exploration helpers.
 
+## Orchestration architecture
+
+```text
+OpenSpec change/tasks
+        │
+        ▼
+Orch workflow
+        │
+        ▼
+WorkUnit + context allocation
+        │
+        ▼
+Deterministic routing planner
+ ├─ capability filtering
+ ├─ preferred-agent routing
+ ├─ execution tier
+ ├─ context strategy
+ └─ conservative parallelism
+        │
+        ▼
+AgentRegistry
+ ├─ CodexAdapter
+ ├─ AntigravityAdapter
+ └─ future adapters
+```
+
+Routing decisions are operational only. They reference OpenSpec tasks but never replace OpenSpec task/change state.
+
+Initial execution tiers are provider-neutral: `lightweight`, `default`, and `strong`. An adapter that cannot enforce a tier uses its normal/default behavior and Orch reports the requested tier as advisory.
+
+Context starts targeted. Broad repository context and compression reuse the central token policy rather than maintaining routing-specific thresholds. Parallel execution is allowed only when dependencies, write scopes, global-change risk, and adapter capability are all safe; unknown write scope is sequential.
+
+See `docs/agent-adapters.md` for the extension contract and a minimal future-provider example.
+
 ## Workflow entry points
 
 - `/orch-explore`
@@ -34,18 +68,18 @@ Orch may update files carrying this marker. If a file at a managed path does not
 ## Commands
 
 ```text
-orch init        Initialize config, integrations, and optional tooling
-orch update      Refresh Orch-managed agent assets only
+orch init        Initialize config, registry integrations, and optional tooling
+orch update      Refresh Orch-managed agent assets through the registry
 orch status      Show operational status without duplicating OpenSpec state
-orch doctor      Diagnose required and optional dependencies
+orch doctor      Diagnose required and optional dependencies/integrations
 orch tokens      Show usage from the configured usage provider
 orch workflows   List installed slash-workflow entry points
-orch run-report  Show the latest Orch token-efficiency run report
+orch run-report  Show token-efficiency and routing telemetry for the latest run
 ```
 
 ## `orch init`
 
-`orch init` is designed to be idempotent. Re-running it preserves custom `.orch/config.json` values, fills in missing defaults, preserves invalid JSON rather than destroying it, preserves existing `AGENTS.md`, and safely refreshes only Orch-managed generated files.
+`orch init` is designed to be idempotent. Re-running it preserves custom `.orch/config.json` values, fills in missing defaults, preserves invalid JSON rather than destroying it, preserves existing `AGENTS.md`, and safely refreshes only Orch-managed generated files through the registered agent adapters.
 
 ## Token-efficiency policy
 
