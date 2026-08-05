@@ -18,6 +18,8 @@ Orch does not maintain separate specifications, plans, tasks, changes, or archiv
 - MUST NOT apply OpenSpec changes.
 - MUST NOT archive changes.
 - Read the minimum relevant context first.
+- Prefer relevant durable technical docs under the configured docs root before broad repository scans when useful.
+- Treat docs as current implementation reference only; planning/state belongs in OpenSpec.
 - Prefer targeted file reads over broad repository reads.
 - Use RTK for supported verbose shell, git, test, and build commands.
 - Use Repomix only when broader repository context is actually necessary.
@@ -28,12 +30,13 @@ Orch does not maintain separate specifications, plans, tasks, changes, or archiv
 ## Workflow
 
 1. Read relevant OpenSpec context.
-2. Identify the minimum project files required.
-3. Inspect those files without modifying them.
-4. If targeted context is insufficient, use the Orch Repomix policy.
-5. If context remains above the configured LLMLingua threshold, allow Orch compression.
-6. Prefer RTK for supported terminal commands.
-7. Return findings and the mandatory run summary.
+2. Read relevant current-system docs when useful.
+3. Identify the minimum project files required.
+4. Inspect those files without modifying them.
+5. If targeted context is insufficient, use the Orch Repomix policy.
+6. If context remains above the configured LLMLingua threshold, allow Orch compression.
+7. Prefer RTK for supported terminal commands.
+8. Return findings and the mandatory run summary.
 
 ## Mandatory Orch Run Summary
 

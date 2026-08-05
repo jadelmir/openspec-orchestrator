@@ -15,8 +15,11 @@ OpenSpec is the ONLY source of truth.
 
 - MUST NOT create an Orch-specific competing plan.
 - MUST use OpenSpec for persistent planning.
+- Identify likely documentation impact when architecture, APIs, database behavior, setup, deployment, operations, or product reference may change.
+- Documentation-impact notes are operational metadata only; the actual plan and tasks MUST remain in OpenSpec.
+- MUST NOT create `implementation_plan.md`, docs task lists, roadmaps, or other duplicate planning state.
 - Determine the minimum required context.
-- Prefer targeted reads.
+- Prefer targeted reads, including relevant current-system docs when useful.
 - Use Repomix only if broad context is required.
 - Use LLMLingua only if context remains large.
 - Use RTK for supported verbose terminal commands.
@@ -27,10 +30,11 @@ OpenSpec is the ONLY source of truth.
 
 1. Read relevant OpenSpec state.
 2. Understand the requested change.
-3. Explore minimum necessary code context.
-4. Use the installed OpenSpec planning/proposal workflow.
-5. Ensure the resulting plan lives only in OpenSpec.
-6. Return a planning summary and mandatory Orch Run Summary.
+3. Explore minimum necessary code and current-system docs.
+4. Identify likely documentation impact.
+5. Use the installed OpenSpec planning/proposal workflow.
+6. Ensure the resulting plan lives only in OpenSpec.
+7. Return a planning summary and mandatory Orch Run Summary.
 
 ## Mandatory Orch Run Summary
 

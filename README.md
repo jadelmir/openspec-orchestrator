@@ -8,7 +8,7 @@ Orch is a thin orchestration and token-efficiency layer around OpenSpec.
 
 OpenSpec is the ONLY source of truth for specs, plans, proposals/changes, tasks, progress state, and archives.
 
-Orch owns the operational layer around OpenSpec: agent orchestration, agent/tool integration, token-efficiency policy, context preparation, usage visibility, operational reporting, project-level configuration, and read-only exploration helpers.
+Orch owns the operational layer around OpenSpec: agent orchestration, agent/tool integration, token-efficiency policy, context preparation, usage visibility, operational reporting, project-level configuration, project organization, and read-only exploration helpers.
 
 ## Orchestration architecture
 
@@ -71,7 +71,9 @@ Orch may update files carrying this marker. If a file at a managed path does not
 orch init        Initialize config, registry integrations, and optional tooling
 orch update      Refresh Orch-managed agent assets through the registry
 orch status      Show operational status without duplicating OpenSpec state
-orch doctor      Diagnose required and optional dependencies/integrations
+orch doctor      Diagnose dependencies, integrations, and project organization
+orch organize    Preview documentation organization changes (dry-run)
+orch organize --apply  Apply only conservative safe documentation moves
 orch tokens      Show usage from the configured usage provider
 orch workflows   List installed slash-workflow entry points
 orch run-report  Show token-efficiency and routing telemetry for the latest run
@@ -80,6 +82,30 @@ orch run-report  Show token-efficiency and routing telemetry for the latest run
 ## `orch init`
 
 `orch init` is designed to be idempotent. Re-running it preserves custom `.orch/config.json` values, fills in missing defaults, preserves invalid JSON rather than destroying it, preserves existing `AGENTS.md`, and safely refreshes only Orch-managed generated files through the registered agent adapters.
+
+## Project Organization
+
+ORCH encourages durable technical reference documentation under a configurable docs root while OpenSpec remains the sole source of truth for requirements, changes, plans, tasks, progress, and archives. `docs/` describes how the currently implemented system works; it is not a second planning system.
+
+`orch doctor` reports documentation hygiene warnings. `orch organize` is report-only and suggests conservative destinations such as `API.md -> docs/api/api.md`. `orch organize --apply` performs only high-confidence, non-overwriting moves; uncertain files remain for manual review and OpenSpec content is never moved. Empty category directories are not created.
+
+Configuration defaults:
+
+```json
+{
+  "organization": {
+    "enabled": true,
+    "docs": {
+      "enabled": true,
+      "root": "docs",
+      "enforceRootHygiene": true,
+      "updateWithImplementation": true
+    }
+  }
+}
+```
+
+Both organization and docs governance can be disabled independently, and `docs.root` may be changed to another safe project-relative path.
 
 ## Token-efficiency policy
 

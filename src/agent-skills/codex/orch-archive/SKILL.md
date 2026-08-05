@@ -12,6 +12,8 @@ Orch MUST NOT maintain a separate archive.
 
 - Read the relevant OpenSpec change.
 - Verify expected work is complete.
+- If approved work declared or clearly required documentation synchronization, verify relevant current-system docs were updated.
+- Documentation verification MUST NOT create a competing task/archive lifecycle.
 - Use RTK for supported verification commands.
 - Report incomplete work or failed verification.
 - Archive through OpenSpec only.
@@ -21,10 +23,11 @@ Orch MUST NOT maintain a separate archive.
 
 1. Locate the active OpenSpec change.
 2. Confirm its required tasks are complete.
-3. Run relevant verification.
-4. If verification fails, DO NOT archive, but STILL present mandatory run summary.
-5. If complete, invoke the appropriate OpenSpec archive workflow.
-6. Return the archive result and mandatory run summary.
+3. Verify required documentation synchronization when applicable.
+4. Run relevant verification.
+5. If verification fails, DO NOT archive, but STILL present mandatory run summary.
+6. If complete, invoke the appropriate OpenSpec archive workflow.
+7. Return the archive result and mandatory run summary.
 
 ## Mandatory Orch Run Summary
 
