@@ -1,80 +1,40 @@
 ---
 name: orch-execute
-description: Execute approved OpenSpec work while applying Orch token-efficiency rules.
+description: Execute approved OpenSpec work through Orch routing and token-efficiency policy.
 ---
 
 # Orch Execute
 
-Execute the currently approved OpenSpec work.
-
-## Source of Truth
-
-OpenSpec is the ONLY source of truth.
+OpenSpec is the ONLY source of truth. Orch routing is operational only.
 
 ## MUST
 
-- Read the approved OpenSpec change/tasks first.
-- Execute only approved scope.
-- MUST NOT invent unrelated tasks.
-- Prefer targeted repository context.
-- Use Repomix only when necessary.
-- Use LLMLingua only when context remains large.
-- Use RTK for supported shell, test, build, lint, and git output.
-- Record progress through OpenSpec only.
-- Report token savings when available.
+- Read the approved OpenSpec change/tasks first and execute only approved scope.
+- Derive bounded WorkUnits that reference their originating OpenSpec task.
+- Route every WorkUnit through the Orch agent registry before delegation.
+- Filter candidates by required capabilities and fail early when none are capable.
+- Prefer an explicitly configured capable agent; otherwise use deterministic routing.
+- Use provider-neutral execution tiers: lightweight, default, strong. Unsupported tiers are advisory and MUST be reported as such.
+- Start with targeted context and reuse Orch token policy for Repomix/LLMLingua decisions.
+- Parallelize only when dependency edges, known write scopes, global-change risk, and adapter parallel capability all permit it. Unknown write scope means sequential.
+- Record OpenSpec progress only through OpenSpec.
+- Keep selected agent, tier, context strategy, parallelism, reasons, and measurable usage in Orch operational telemetry, not task state.
+- Never fabricate token usage or savings.
 
 ## Workflow
 
-1. Read the approved OpenSpec work.
-2. Identify the next incomplete task.
-3. Load minimum required context.
-4. Implement that task.
-5. Verify appropriately.
-6. Update progress through OpenSpec.
-7. Continue until complete or blocked.
-8. Display execution results and mandatory Orch Run Summary.
+1. Read approved OpenSpec work.
+2. Identify the next incomplete OpenSpec task.
+3. Derive WorkUnits tied to that task.
+4. Allocate targeted/broad/compressed context through Orch policy.
+5. Route through the detected agent registry.
+6. Analyze conservative parallelism.
+7. Execute/delegate with the selected adapter and effective tier.
+8. Verify appropriately.
+9. Update progress through OpenSpec only.
+10. Record routing telemetry and continue until complete or blocked.
+11. Display execution results and the mandatory Orch run summary.
 
 ## Mandatory Orch Run Summary
 
-At workflow completion (even if blocked or failed):
-MUST display actual Orch optimization state.
-
-MUST NOT assume a tool was used merely because it is installed.
-
-MUST NOT fabricate token savings. Use "not measured" when values cannot be measured.
-
-Desired final report format:
-
-🧠 ORCH TOKEN EFFICIENCY
-────────────────────────────────
-Workflow: orch-execute
-
-RTK
-Status: <USED | SKIPPED | AVAILABLE | UNAVAILABLE | FAILED>
-Reason: <reason if skipped/failed/available>
-Saved: <measured tokens | not measured>
-
-Repomix
-Status: <USED | SKIPPED | AVAILABLE | UNAVAILABLE | FAILED>
-Reason: <reason if skipped/failed/available>
-Saved: <measured tokens | not measured>
-
-LLMLingua
-Status: <USED | SKIPPED | AVAILABLE | UNAVAILABLE | FAILED>
-Reason: <reason if skipped/failed/available>
-Saved: <measured tokens | not measured>
-
-ccusage
-Status: <AVAILABLE | UNAVAILABLE | FAILED>
-Tracking: session/day usage
-Per-workflow usage: not directly attributable
-
-Context
-Before: <tokens | not measured>
-After:  <tokens | not measured>
-
-────────────────────────────────
-Run saved:     <tokens | 0 tokens | not fully measured>
-Project saved: <tokens | not measured>
-
-<🧠 Token efficiency was used | ℹ️ No token optimization was required for this run.>
+Report actual status for RTK, Repomix, LLMLingua, and the usage provider; use `not measured` when necessary. Include each routed WorkUnit with agent, requested/effective tier, context strategy, parallel/sequential decision, and human-readable reasons.
