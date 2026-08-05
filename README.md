@@ -1,10 +1,62 @@
-# Orch Clean v3
+# OpenSpec Orchestrator
 
-Fresh Orch build with an improved `orch init`.
+Orch is a thin orchestration and token-efficiency layer around OpenSpec.
 
-## What `orch init` now does
+> **OpenSpec defines what should be done. Orch decides how AI agents should do it efficiently.**
 
-Running `orch init` inside a project now:
+## Core boundary
+
+OpenSpec is the ONLY source of truth for:
+
+- specs
+- plans
+- proposals / changes
+- tasks
+- progress state
+- archives
+
+Orch MUST NOT create competing persistent workflow state for any of those things.
+
+Orch owns the operational layer around OpenSpec:
+
+- agent orchestration
+- agent/tool integration
+- token-efficiency policy
+- context preparation
+- token measurement and reporting
+- project-level Orch configuration
+- read-only exploration helpers
+
+## Orch workflow commands
+
+The slash commands stay intentionally:
+
+- `/orch-explore`
+- `/orch-plan`
+- `/orch-execute`
+- `/orch-archive`
+
+These are **Orch entry points**, not replacements for OpenSpec workflows.
+
+### `/orch-plan`
+
+Delegates persistent planning to the installed OpenSpec planning/proposal workflow. Orch adds minimum-context selection, agent orchestration, token-efficiency tools, and reporting. Orch MUST NOT create a second plan.
+
+### `/orch-execute`
+
+Executes only work approved in OpenSpec. OpenSpec remains authoritative for tasks and progress. Orch decides how to prepare context, route work to agents, optimize tool output, and report token usage/savings.
+
+### `/orch-archive`
+
+Delegates the actual archive operation to OpenSpec after verification. Orch may finalize operational metrics/reporting, but MUST NOT maintain a competing archive.
+
+### `/orch-explore`
+
+Read-only exploration. It may inspect OpenSpec and repository context while applying Orch token-efficiency rules, but MUST NOT modify project or OpenSpec files.
+
+## What `orch init` does
+
+Running `orch init` inside a project:
 
 1. Creates `.orch/config.json`
 2. Detects whether the OpenSpec CLI exists
@@ -18,13 +70,16 @@ Running `orch init` inside a project now:
 10. Detects optional LLMLingua
 11. Prints whether token efficiency is active
 
-OpenSpec remains the ONLY source of truth for specs, plans, tasks, changes, and archives.
+## Token-efficiency policy
 
-## Important boundary
+Orch can use:
 
-Orch agent instructions DO NOT duplicate OpenSpec workflows.
+- **RTK** for supported verbose terminal output
+- **Repomix** when broad repository context is actually required
+- **LLMLingua** only when context remains large enough to justify compression
+- **ccusage** when available for usage visibility
 
-OpenSpec teaches the agent how to use OpenSpec. Orch only adds orchestration rules, token-efficiency rules, read-only exploration policy, and the source-of-truth boundary.
+A tool being installed does NOT mean it was used. Orch must report actual use and MUST NOT fabricate token savings. If a value cannot be measured, it should say `not measured`.
 
 ## Windows fixes retained
 
@@ -35,7 +90,6 @@ On Windows it resolves `npm` to `npm.cmd` and `npx` to `npx.cmd`, avoiding both 
 ## Install
 
 ```powershell
-cd C:\path\to\orch-clean-v3
 npm install
 npm run build
 npm unlink -g orch
