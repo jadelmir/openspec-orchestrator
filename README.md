@@ -64,10 +64,11 @@ A tool being installed does NOT mean it was used. Orch must report actual use an
 ## Install from source
 
 ```powershell
+git clone https://github.com/jadelmir/openspec-orchestrator.git
+cd openspec-orchestrator
 npm install
 npm run build
 npm test
-npm unlink -g openspec-orchestrator
 npm link
 ```
 
@@ -96,6 +97,33 @@ When upgrading Orch later, refresh generated agent assets with:
 orch update
 ```
 
+## Package and release checks
+
+Before publishing a release, run:
+
+```powershell
+npm ci
+npm run build
+npm test
+npm run pack:check
+```
+
+`npm run pack:check` shows exactly what would be included in the npm package. The package uses an explicit `files` whitelist so development-only directories such as `src/`, `test/`, `.agents/`, and `.codex/` are not accidentally published; built runtime assets are shipped from `dist/`.
+
+The `prepack` hook also rebuilds and reruns tests before npm creates a package tarball.
+
+## Continuous integration
+
+GitHub Actions runs on pushes to `main` and on pull requests using Node.js 20 and 22. CI installs with `npm ci`, builds the project, runs tests, and performs an npm package dry run.
+
+## Versioning and changes
+
+The project uses semantic-versioning conventions where practical. See `CHANGELOG.md` for notable changes. Work that has not yet been released remains under the `Unreleased` section until a version is cut.
+
 ## Windows behavior
 
 Orch does not use `shell: true`. On Windows it resolves commands such as `npm`/`npx` to their `.cmd` forms where needed, avoiding shell deprecation warnings and common `spawn ... ENOENT` failures.
+
+## License
+
+MIT. See `LICENSE`.
