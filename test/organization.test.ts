@@ -1,17 +1,22 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { execFile } from "node:child_process";
+import { promisify } from "node:util";
 import { mkdtemp, mkdir, readFile, writeFile, access } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { ensureConfig } from "../src/commands/init.js";
 import { getOrganizationDoctorLines } from "../src/commands/doctor.js";
 import { organizeCommand } from "../src/commands/organize.js";
+import { createWorkUnit } from "../src/orchestration/workUnit.js";
 import {
   analyzeProjectOrganization,
   applyOrganizationSuggestions,
   classifyTechnicalDocument,
   loadOrganizationConfig
 } from "../src/organization/projectOrganization.js";
+
+const execFileAsync = promisify(execFile);
 
 async function project(): Promise<string> {
   const dir = await mkdtemp(path.join(os.tmpdir(), "orch-org-"));
@@ -36,6 +41,14 @@ test("organization config defaults are merged without overwriting custom values"
   assert.equal(parsed.custom, "kept");
   const loaded = await loadOrganizationConfig(dir);
   assert.equal(loaded.config.docs.root, "technical-docs");
+});
+
+test("organization and docs governance can be disabled independently", async () => {
+  const dir = await project();
+  const configPath = path.join(dir, ".orch", "config.json");
+  await writeFile(configPath, JSON.stringify({ organization: { enabled: true, docs: { enabled: false } } }));
+  assert.equal((await analyzeProjectOrganization(dir)).enabled, false);
+  assert.deepEqual(await getOrganizationDoctorLines(dir), ["SKIP Project organization checks disabled by configuration."]);
 });
 
 test("classifier is deterministic and conservative", () => {
@@ -137,4 +150,26 @@ test("doctor organization output warns without treating hygiene findings as erro
   lines = await getOrganizationDoctorLines(dir);
   assert.ok(lines.some((line) => line.includes("WARN Technical document") && line.includes("API.md")));
   assert.equal(lines.some((line) => line.startsWith("ERROR")), false);
+});
+
+test("WorkUnit documentation impact remains optional operational metadata and deduplicates paths", () => {
+  const work = createWorkUnit({
+    id: "wu-1",
+    sourceTaskRef: "openspec:task-1",
+    objective: "Implement API behavior",
+    risk: "low",
+    complexity: "small",
+    requiresWrites: true,
+    requiresCommands: false,
+    documentationImpact: { required: true, paths: ["docs/api/api.md", "docs/api/api.md", ""] }
+  });
+  assert.deepEqual(work.documentationImpact, { required: true, paths: ["docs/api/api.md"] });
+});
+
+test("CLI help registers orch organize and --apply", async () => {
+  const cli = path.join(process.cwd(), "src", "cli.ts");
+  const help = await execFileAsync(process.execPath, ["--import", "tsx", cli, "--help"], { cwd: process.cwd() });
+  assert.match(help.stdout, /organize/);
+  const organizeHelp = await execFileAsync(process.execPath, ["--import", "tsx", cli, "organize", "--help"], { cwd: process.cwd() });
+  assert.match(organizeHelp.stdout, /--apply/);
 });
