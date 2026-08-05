@@ -4,6 +4,7 @@ import { doctorCommand } from "./commands/doctor.js";
 import { initCommand } from "./commands/init.js";
 import { statusCommand } from "./commands/status.js";
 import { tokensCommand } from "./commands/tokens.js";
+import { updateCommand } from "./commands/update.js";
 import { loadRunState, printRunReport } from "./token/runReporter.js";
 
 const program = new Command();
@@ -13,25 +14,11 @@ program
   .description("Thin OpenSpec orchestration and token-efficiency layer")
   .version("0.3.0");
 
-program
-  .command("init")
-  .description("Initialize Orch operational config and agent integrations")
-  .action(() => initCommand());
-
-program
-  .command("doctor")
-  .description("Check OpenSpec and Orch token-efficiency dependencies")
-  .action(() => doctorCommand());
-
-program
-  .command("status")
-  .description("Show Orch operational status without duplicating OpenSpec state")
-  .action(() => statusCommand());
-
-program
-  .command("tokens")
-  .description("Show token-usage visibility from the configured usage tooling")
-  .action(() => tokensCommand());
+program.command("init").description("Initialize Orch operational config and agent integrations").action(() => initCommand());
+program.command("update").description("Refresh Orch-managed agent skills and workflows without touching user-authored files").action(() => updateCommand());
+program.command("doctor").description("Check required and optional Orch dependencies").action(() => doctorCommand());
+program.command("status").description("Show Orch operational status without duplicating OpenSpec state").action(() => statusCommand());
+program.command("tokens").description("Show token-usage visibility from the configured usage provider").action(() => tokensCommand());
 
 program
   .command("run-report")
