@@ -1,7 +1,7 @@
 {
   "name": "orch",
   "version": "0.3.0",
-  "description": "OpenSpec-first orchestration CLI with token-efficiency adapters",
+  "description": "Thin OpenSpec orchestration and token-efficiency layer for AI agents",
   "type": "module",
   "bin": {
     "orch": "./dist/cli.js"
