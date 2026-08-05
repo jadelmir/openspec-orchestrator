@@ -1,7 +1,7 @@
 {
-  "name": "orch",
+  "name": "openspec-orchestrator",
   "version": "0.3.0",
-  "description": "Thin OpenSpec orchestration and token-efficiency layer for AI agents",
+  "description": "Thin orchestration and token-efficiency layer around OpenSpec",
   "type": "module",
   "bin": {
     "orch": "./dist/cli.js"
@@ -9,7 +9,16 @@
   "scripts": {
     "build": "tsc && node scripts/copy-assets.js",
     "dev": "tsx src/cli.ts",
-    "start": "node dist/cli.js"
+    "start": "node dist/cli.js",
+    "test": "node --import tsx --test test/**/*.test.ts"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jadelmir/openspec-orchestrator.git"
+  },
+  "homepage": "https://github.com/jadelmir/openspec-orchestrator#readme",
+  "bugs": {
+    "url": "https://github.com/jadelmir/openspec-orchestrator/issues"
   },
   "dependencies": {
     "commander": "^12.1.0",
