@@ -1,0 +1,29 @@
+# Dependencies
+node_modules/
+
+# Build artifacts
+dist/
+
+# Local Orch runtime configuration & operational stats
+.orch/
+
+# Agent local files generated on init
+.agents/
+.codex/
+AGENTS.md
+
+# Scratch & temporary files
+scratch/
+*.log
+*.tmp
+repomix-output.xml
+
+# Environment variables & secrets
+.env
+.env.*
+
+# OS & Editor files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
