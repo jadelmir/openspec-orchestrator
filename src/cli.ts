@@ -2,6 +2,7 @@
 import { Command } from "commander";
 import { doctorCommand } from "./commands/doctor.js";
 import { initCommand } from "./commands/init.js";
+import { organizeCommand } from "./commands/organize.js";
 import { statusCommand } from "./commands/status.js";
 import { tokensCommand } from "./commands/tokens.js";
 import { updateCommand } from "./commands/update.js";
@@ -19,6 +20,7 @@ program.command("update").description("Refresh Orch-managed agent skills and wor
 program.command("doctor").description("Check required and optional Orch dependencies").action(() => doctorCommand());
 program.command("status").description("Show Orch operational status without duplicating OpenSpec state").action(() => statusCommand());
 program.command("tokens").description("Show token-usage visibility from the configured usage provider").action(() => tokensCommand());
+program.command("organize").description("Scan project documentation organization (report-only by default)").option("--apply", "Apply only safe non-overwriting documentation moves").action((options) => organizeCommand(options));
 
 program
   .command("run-report")
