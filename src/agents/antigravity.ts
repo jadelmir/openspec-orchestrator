@@ -1,47 +1,27 @@
-import { mkdir, copyFile } from "node:fs/promises";
+import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { writeManagedFile, type ManagedWriteResult } from "../core/managedFiles.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const workflows = [
-  "orch-explore",
-  "orch-plan",
-  "orch-execute",
-  "orch-archive"
-];
+const workflows = ["orch-explore", "orch-plan", "orch-execute", "orch-archive"];
 
-export async function installAntigravityWorkflows(
-  cwd: string
-): Promise<string[]> {
-  const destinationDir = path.join(
-    cwd,
-    ".agents",
-    "workflows"
-  );
+export interface AgentAssetInstallResult {
+  name: string;
+  status: ManagedWriteResult;
+}
 
-  await mkdir(destinationDir, {
-    recursive: true
-  });
-
-  const installed: string[] = [];
+export async function installAntigravityWorkflows(cwd: string): Promise<AgentAssetInstallResult[]> {
+  const installed: AgentAssetInstallResult[] = [];
 
   for (const workflow of workflows) {
-    const source = path.resolve(
-      __dirname,
-      "../agent-workflows/antigravity",
-      `${workflow}.md`
-    );
-
-    const destination = path.join(
-      destinationDir,
-      `${workflow}.md`
-    );
-
-    await copyFile(source, destination);
-
-    installed.push(workflow);
+    const source = path.resolve(__dirname, "../agent-workflows/antigravity", `${workflow}.md`);
+    const destination = path.join(cwd, ".agents", "workflows", `${workflow}.md`);
+    const content = await readFile(source, "utf8");
+    const status = await writeManagedFile(destination, content);
+    installed.push({ name: workflow, status });
   }
 
   return installed;
