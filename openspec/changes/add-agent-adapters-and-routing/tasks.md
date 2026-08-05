@@ -14,7 +14,7 @@
 - [x] 2.4 Update `orch init` to use the registry instead of importing Codex/Antigravity installers directly.
 - [x] 2.5 Update `orch update` to use adapter update methods through the registry.
 - [x] 2.6 Update `orch status` and `orch doctor` to report registry-backed integration status.
-- [ ] 2.7 Add regression tests proving current Codex and Antigravity behavior is unchanged.
+- [x] 2.7 Add regression tests proving current Codex and Antigravity behavior is unchanged.
 
 ## 3. Define orchestration work units
 
@@ -61,7 +61,7 @@
 ## 8. Add operational telemetry
 
 - [x] 8.1 Record selected agent, execution tier, context strategy, parallel/sequential decision, and reasons per routed work unit.
-- [ ] 8.2 Integrate usage-provider data when measurable.
+- [x] 8.2 Integrate usage-provider data when measurable.
 - [x] 8.3 Report `not measured` for unavailable token values.
 - [x] 8.4 Keep telemetry clearly separate from OpenSpec task/change state.
 
